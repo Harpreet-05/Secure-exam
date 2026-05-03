@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>SecureExam — Admin Panel</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root{
+  --bg:#f0f2f8; --surface:#ffffff; --surface2:#f6f8fc; --surface3:#eef0f8;
+  --border:#dde1ee; --border2:#c8cfe0;
+  --text:#0f1623; --muted:#5a6478; --muted2:#8b94aa;
+  --accent:#2563eb; --accent-lt:#eff6ff; --accent-dk:#1d4ed8;
+  --success:#059669; --success-lt:#ecfdf5;
+  --danger:#dc2626; --danger-lt:#fef2f2;
+  --warn:#d97706; --warn-lt:#fffbeb;
+  --purple:#7c3aed; --purple-lt:#f5f3ff;
+  --shadow:0 1px 3px rgba(0,0,0,0.07),0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:0 4px 16px rgba(0,0,0,0.08);
+  --radius:10px; --radius-lg:14px;
+  --sans:'Plus Jakarta Sans',sans-serif; --mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;display:flex;}
+
+/* ── SIDEBAR NAV ── */
+#sidenav{
+  width:230px;flex-shrink:0;background:var(--surface);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  position:sticky;top:0;height:100vh;overflow:hidden;
+}
+.sn-logo{
+  display:flex;align-items:center;gap:10px;
+  padding:20px 20px 16px;border-bottom:1px solid var(--border);
+}
+.sn-logo-icon{
+  width:36px;height:36px;background:var(--accent);border-radius:9px;
+  display:flex;align-items:center;justify-content:center;font-size:17px;color:#fff;
+}
+.sn-logo-text{font-size:15px;font-weight:800;letter-spacing:-0.3px;}
+.sn-logo-text span{color:var(--accent);}
+.sn-admin-badge{
+  margin:12px 16px;background:var(--accent-lt);color:var(--accent);
+  border:1px solid rgba(37,99,235,0.2);border-radius:6px;
+  padding:5px 10px;font-size:11px;font-weight:700;text-align:center;letter-spacing:0.5px;
+}
+.sn-section{padding:6px 10px;font-size:10px;font-weight:700;color:var(--muted2);letter-spacing:1px;text-transform:uppercase;margin-top:8px;}
+.sn-link{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;border-radius:8px;margin:1px 6px;
+  font-size:13px;font-weight:600;color:var(--muted);
+  cursor:pointer;transition:all 0.15s;border:none;background:transparent;width:calc(100% - 12px);text-align:left;
+}
+.sn-link:hover{background:var(--surface2);color:var(--text);}
+.sn-link.active{background:var(--accent-lt);color:var(--accent);}
+.sn-link .sn-icon{font-size:16px;width:20px;text-align:center;}
+.sn-link .sn-badge{margin-left:auto;background:var(--danger);color:#fff;border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;}
+
+.sn-bottom{margin-top:auto;padding:12px;border-top:1px solid var(--border);}
+.sn-refresh-btn{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  width:100%;padding:9px;border-radius:8px;
+  background:var(--accent);color:#fff;border:none;
+  font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer;
+  transition:opacity 0.2s;
+}
+.sn-refresh-btn:hover{opacity:0.88;}
+.sn-live-dot{width:7px;height:7px;border-radius:50%;background:var(--success);animation:blink 1s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+
+/* ── MAIN CONTENT ── */
+#main-content{flex:1;overflow-y:auto;min-height:100vh;}
+
+/* TOPBAR */
+.admin-topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 32px;background:var(--surface);
+  border-bottom:1px solid var(--border);position:sticky;top:0;z-index:40;
+}
+.admin-topbar h1{font-size:18px;font-weight:800;letter-spacing:-0.3px;}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+.live-indicator{
+  display:flex;align-items:center;gap:6px;
+  font-size:12px;color:var(--success);font-weight:600;
+}
+.search-box{
+  display:flex;align-items:center;gap:8px;
+  background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:8px;padding:7px 12px;
+}
+.search-box input{
+  border:none;background:transparent;font-family:var(--sans);font-size:13px;
+  color:var(--text);outline:none;width:200px;
+}
+.search-box input::placeholder{color:var(--muted2);}
+
+/* ── PAGE SECTIONS ── */
+.page-section{display:none;padding:28px 32px;}
+.page-section.active{display:block;}
+
+/* ── STAT CARDS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;}
+.stat-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:20px 22px;
+  box-shadow:var(--shadow);position:relative;overflow:hidden;
+}
+.stat-card::before{
+  content:'';position:absolute;top:0;right:0;
+  width:80px;height:80px;border-radius:50%;
+  transform:translate(20px,-20px);opacity:0.08;
+}
+.stat-card.blue::before{background:var(--accent);}
+.stat-card.green::before{background:var(--success);}
+.stat-card.red::before{background:var(--danger);}
+.stat-card.purple::before{background:var(--purple);}
+.stat-label{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:10px;}
+.stat-value{font-size:30px;font-weight:800;font-family:var(--mono);letter-spacing:-1px;}
+.stat-value.blue{color:var(--accent);}
+.stat-value.green{color:var(--success);}
+.stat-value.red{color:var(--danger);}
+.stat-value.purple{color:var(--purple);}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:5px;}
+.stat-icon{font-size:22px;margin-bottom:8px;}
+
+/* ── SECTION HEADER ── */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.sec-title{font-size:14px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:8px;}
+.sec-title span{color:var(--muted);font-weight:600;font-size:13px;}
+
+/* ── TABLE ── */
+.table-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow);overflow:hidden;margin-bottom:24px;}
+.table-toolbar{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border);}
+.table-toolbar h3{font-size:13px;font-weight:700;}
+.filter-row{display:flex;gap:8px;}
+.filter-btn{
+  padding:5px 12px;border-radius:6px;font-family:var(--sans);font-size:11px;font-weight:600;
+  border:1.5px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;
+  transition:all 0.15s;
+}
+.filter-btn:hover,.filter-btn.active{background:var(--accent-lt);color:var(--accent);border-color:rgba(37,99,235,0.3);}
+
+table{width:100%;border-collapse:collapse;}
+thead th{
+  text-align:left;padding:10px 18px;
+  font-size:10px;font-weight:700;color:var(--muted);
+  letter-spacing:0.8px;text-transform:uppercase;
+  border-bottom:1px solid var(--border);background:var(--surface2);
+}
+tbody tr{border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.12s;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:var(--surface3);}
+td{padding:13px 18px;font-size:13px;vertical-align:middle;}
+.td-mono{font-family:var(--mono);font-size:11px;color:var(--muted);}
+.td-name{font-weight:700;color:var(--text);}
+.td-name .td-sub{font-size:11px;color:var(--muted);font-weight:400;margin-top:2px;}
+
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;border:1px solid;}
+.badge.clean{background:var(--success-lt);color:var(--success);border-color:rgba(5,150,105,0.25);}
+.badge.risk{background:var(--warn-lt);color:var(--warn);border-color:rgba(217,119,6,0.25);}
+.badge.flagged{background:var(--danger-lt);color:var(--danger);border-color:rgba(220,38,38,0.25);}
+.badge.live{background:#ecfdf5;color:#059669;border-color:rgba(5,150,105,0.3);animation:livePulse 2s infinite;}
+@keyframes livePulse{0%,100%{opacity:1}50%{opacity:0.7}}
+.badge.submitted{background:var(--accent-lt);color:var(--accent);border-color:rgba(37,99,235,0.25);}
+
+.v-count{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:28px;height:22px;border-radius:6px;
+  font-family:var(--mono);font-size:12px;font-weight:700;padding:0 6px;
+}
+.v-count.zero{background:var(--success-lt);color:var(--success);}
+.v-count.low{background:var(--warn-lt);color:var(--warn);}
+.v-count.high{background:var(--danger-lt);color:var(--danger);}
+
+.progress-mini{height:5px;background:var(--surface3);border-radius:3px;width:80px;overflow:hidden;}
+.pm-fill{height:100%;border-radius:3px;background:var(--accent);}
+
+.action-btn{
+  padding:5px 12px;border-radius:6px;font-family:var(--sans);
+  font-size:11px;font-weight:700;border:none;cursor:pointer;transition:all 0.15s;
+}
+.ab-view{background:var(--accent-lt);color:var(--accent);}
+.ab-view:hover{background:var(--accent);color:#fff;}
+
+/* ── EXAM BREAKDOWN BARS ── */
+.subject-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
+.subject-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:18px 20px;box-shadow:var(--shadow);
+}
+.sc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.sc-title{font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px;}
+.sc-icon{font-size:18px;}
+.sc-count{font-size:11px;color:var(--muted);font-family:var(--mono);}
+.sc-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.sc-bar-label{font-size:11px;color:var(--muted);width:70px;text-align:right;flex-shrink:0;}
+.sc-bar-track{flex:1;height:7px;background:var(--surface3);border-radius:4px;overflow:hidden;}
+.sc-bar-fill{height:100%;border-radius:4px;transition:width 0.8s ease;}
+.sc-bar-val{font-family:var(--mono);font-size:11px;color:var(--text);width:24px;text-align:right;}
+
+/* ── STUDENT DETAIL MODAL ── */
+#detail-modal{
+  position:fixed;inset:0;z-index:5000;
+  background:rgba(0,0,0,0.5);display:none;
+  align-items:flex-start;justify-content:flex-end;
+  padding:16px;
+}
+.detail-panel{
+  width:520px;height:calc(100vh - 32px);
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-lg);box-shadow:var(--shadow-md);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.dp-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:20px 24px;border-bottom:1px solid var(--border);
+  background:var(--surface2);flex-shrink:0;
+}
+.dp-header h2{font-size:16px;font-weight:800;}
+.dp-close{
+  width:32px;height:32px;border-radius:8px;
+  border:1px solid var(--border);background:var(--surface);
+  font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  color:var(--muted);transition:all 0.15s;
+}
+.dp-close:hover{background:var(--danger-lt);color:var(--danger);border-color:rgba(220,38,38,0.3);}
+.dp-body{flex:1;overflow-y:auto;padding:20px 24px;}
+.dp-body::-webkit-scrollbar{width:4px;}
+.dp-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+.dp-student-card{
+  display:flex;align-items:center;gap:14px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius);padding:16px;margin-bottom:20px;
+}
+.dp-avatar{
+  width:48px;height:48px;border-radius:12px;
+  background:var(--accent);display:flex;align-items:center;justify-content:center;
+  font-size:20px;font-weight:800;color:#fff;flex-shrink:0;
+}
+.dp-info h3{font-size:15px;font-weight:800;}
+.dp-info .dp-roll{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:2px;}
+.dp-info .dp-class{font-size:12px;color:var(--muted);margin-top:2px;}
+
+.dp-section-title{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin:16px 0 8px;}
+.dp-kv-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;}
+.dp-kv{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;}
+.dp-kv .k{font-size:10px;color:var(--muted);font-weight:600;letter-spacing:0.5px;text-transform:uppercase;}
+.dp-kv .v{font-size:14px;font-weight:700;margin-top:3px;font-family:var(--mono);}
+.dp-kv .v.red{color:var(--danger);}
+.dp-kv .v.green{color:var(--success);}
+.dp-kv .v.blue{color:var(--accent);}
+
+.dp-violation-list{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
+.dp-v-item{
+  display:flex;align-items:center;gap:10px;
+  background:var(--danger-lt);border:1px solid rgba(220,38,38,0.2);
+  border-radius:8px;padding:8px 12px;
+}
+.dp-v-item.warn{background:var(--warn-lt);border-color:rgba(217,119,6,0.2);}
+.dp-v-icon{font-size:14px;flex-shrink:0;}
+.dp-v-text{font-size:12px;color:var(--text);flex:1;}
+.dp-v-time{font-family:var(--mono);font-size:10px;color:var(--muted);}
+
+.dp-answers-grid{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
+.dp-answer-row{
+  display:flex;align-items:flex-start;gap:10px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:8px;padding:10px 12px;
+}
+.da-num{
+  width:24px;height:24px;border-radius:6px;flex-shrink:0;
+  background:var(--accent-lt);color:var(--accent);
+  font-family:var(--mono);font-size:11px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+}
+.da-q{font-size:12px;color:var(--text);flex:1;line-height:1.4;}
+.da-ans{font-family:var(--mono);font-size:11px;font-weight:700;padding:2px 7px;border-radius:4px;}
+.da-ans.correct{background:var(--success-lt);color:var(--success);}
+.da-ans.wrong{background:var(--danger-lt);color:var(--danger);}
+.da-ans.skipped{background:var(--surface3);color:var(--muted);}
+
+/* ── CHARTS SECTION ── */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;box-shadow:var(--shadow);}
+.chart-card h3{font-size:13px;font-weight:700;margin-bottom:16px;}
+.donut-wrap{display:flex;align-items:center;gap:20px;}
+.donut-legend{display:flex;flex-direction:column;gap:8px;flex:1;}
+.dl-item{display:flex;align-items:center;gap:8px;font-size:12px;}
+.dl-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0;}
+.dl-label{color:var(--muted);flex:1;}
+.dl-val{font-family:var(--mono);font-weight:700;}
+
+/* ── EMPTY STATE ── */
+.empty-state{text-align:center;padding:60px 32px;color:var(--muted);}
+.empty-state .es-icon{font-size:48px;margin-bottom:16px;opacity:0.5;}
+.empty-state h3{font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px;}
+.empty-state p{font-size:13px;line-height:1.6;}
+
+/* ── RESPONSIVE TABS ── */
+.tab-bar{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:24px;}
+.tab-btn{
+  padding:10px 18px;font-family:var(--sans);font-size:13px;font-weight:600;
+  color:var(--muted);border:none;background:transparent;cursor:pointer;
+  border-bottom:2px solid transparent;transition:all 0.15s;margin-bottom:-1px;
+}
+.tab-btn:hover{color:var(--text);}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+</style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ── -->
+<div id="sidenav">
+  <div class="sn-logo">
+    <div class="sn-logo-icon">🔒</div>
+    <div class="sn-logo-text">Secure<span>Exam</span></div>
+  </div>
+  <div class="sn-admin-badge">ADMIN PANEL</div>
+  <div class="sn-section">Monitor</div>
+  <button class="sn-link active" onclick="showPage('overview', this)">
+    <span class="sn-icon">📊</span> Overview
+  </button>
+  <button class="sn-link" onclick="showPage('students', this)">
+    <span class="sn-icon">👥</span> All Students
+    <span class="sn-badge" id="nav-badge">0</span>
+  </button>
+  <button class="sn-link" onclick="showPage('live', this)">
+    <span class="sn-icon">🔴</span> Live Sessions
+  </button>
+  <button class="sn-link" onclick="showPage('violations', this)">
+    <span class="sn-icon">⚠️</span> Violations
+  </button>
+  <div class="sn-section">Reports</div>
+  <button class="sn-link" onclick="showPage('subjects', this)">
+    <span class="sn-icon">📚</span> By Subject
+  </button>
+  <button class="sn-link" onclick="showPage('answers', this)">
+    <span class="sn-icon">📝</span> Answer Sheets
+  </button>
+  <div class="sn-bottom">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;font-size:11px;color:var(--muted);">
+      <div class="sn-live-dot"></div> Auto-refreshing every 8s
+    </div>
+    <button class="sn-refresh-btn" onclick="loadAll()">↻ Refresh Now</button>
+    <div style="margin-top:8px;text-align:center;">
+      <a href="index.html" style="font-size:11px;color:var(--accent);">← Student Portal</a>
+    </div>
+  </div>
+</div>
+
+<!-- ── MAIN CONTENT ── -->
+<div id="main-content">
+
+  <!-- TOPBAR -->
+  <div class="admin-topbar">
+    <h1 id="page-title">Overview Dashboard</h1>
+    <div class="topbar-right">
+      <div class="live-indicator"><div class="sn-live-dot"></div> Live</div>
+      <div class="search-box">
+        <span style="color:var(--muted2);">🔍</span>
+        <input type="text" id="search-input" placeholder="Search by name, roll no, email..." oninput="filterStudents()">
+      </div>
+      <button onclick="exportCSV()" style="padding:8px 14px;border-radius:8px;background:var(--surface);border:1.5px solid var(--border);font-family:var(--sans);font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;">⬇ Export CSV</button>
+    </div>
+  </div>
+
+  <!-- ── OVERVIEW PAGE ── -->
+  <div class="page-section active" id="page-overview">
+    <div class="stats-grid">
+      <div class="stat-card blue">
+        <div class="stat-icon">👥</div>
+        <div class="stat-label">Total Students</div>
+        <div class="stat-value blue" id="ov-total">—</div>
+        <div class="stat-sub">Registered sessions</div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-icon">⚠️</div>
+        <div class="stat-label">Total Violations</div>
+        <div class="stat-value red" id="ov-violations">—</div>
+        <div class="stat-sub">All sessions combined</div>
+      </div>
+      <div class="stat-card purple">
+        <div class="stat-icon">🚩</div>
+        <div class="stat-label">Flagged Students</div>
+        <div class="stat-value purple" id="ov-flagged">—</div>
+        <div class="stat-sub">3+ violations</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-icon">✅</div>
+        <div class="stat-label">Submitted</div>
+        <div class="stat-value green" id="ov-submitted">—</div>
+        <div class="stat-sub">Exams completed</div>
+      </div>
+    </div>
+
+    <!-- SECOND ROW STATS -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;">
+      <div class="stat-card" style="border-color:rgba(37,99,235,0.2);">
+        <div class="stat-label">Avg Score</div>
+        <div class="stat-value blue" id="ov-avg-score" style="font-size:22px;">—</div>
+        <div class="stat-sub">Across all exams</div>
+      </div>
+      <div class="stat-card" style="border-color:rgba(220,38,38,0.2);">
+        <div class="stat-label">Tab Switches</div>
+        <div class="stat-value red" id="ov-tabs" style="font-size:22px;">—</div>
+        <div class="stat-sub">Total detected</div>
+      </div>
+      <div class="stat-card" style="border-color:rgba(124,58,237,0.2);">
+        <div class="stat-label">Face Absent</div>
+        <div class="stat-value purple" id="ov-face" style="font-size:22px;">—</div>
+        <div class="stat-sub">Incidents logged</div>
+      </div>
+      <div class="stat-card" style="border-color:rgba(5,150,105,0.2);">
+        <div class="stat-label">Clean Sessions</div>
+        <div class="stat-value green" id="ov-clean" style="font-size:22px;">—</div>
+        <div class="stat-sub">Zero violations</div>
+      </div>
+    </div>
+
+    <!-- SUBJECT BREAKDOWN -->
+    <div class="sec-hdr"><div class="sec-title">📚 Exam Subject Breakdown</div></div>
+    <div class="subject-grid" id="subject-grid">
+      <div class="empty-state"><div class="es-icon">📊</div><p>Loading subject data...</p></div>
+    </div>
+
+    <!-- RECENT ACTIVITY TABLE -->
+    <div class="sec-hdr"><div class="sec-title">🕐 Recent Activity <span id="recent-count"></span></div></div>
+    <div class="table-card">
+      <table>
+        <thead><tr>
+          <th>Student</th><th>Roll No</th><th>Exam</th>
+          <th>Violations</th><th>Status</th><th>Time</th>
+        </tr></thead>
+        <tbody id="recent-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── ALL STUDENTS PAGE ── -->
+  <div class="page-section" id="page-students">
+    <div class="table-card">
+      <div class="table-toolbar">
+        <h3>All Registered Students</h3>
+        <div class="filter-row">
+          <button class="filter-btn active" onclick="filterByStatus('all',this)">All</button>
+          <button class="filter-btn" onclick="filterByStatus('clean',this)">✅ Clean</button>
+          <button class="filter-btn" onclick="filterByStatus('risk',this)">⚠ At Risk</button>
+          <button class="filter-btn" onclick="filterByStatus('flagged',this)">🚩 Flagged</button>
+          <button class="filter-btn" onclick="filterByStatus('live',this)">🔴 Live</button>
+        </div>
+      </div>
+      <table>
+        <thead><tr>
+          <th>Student Name</th><th>Roll No</th><th>Class</th><th>Email</th>
+          <th>Exam</th><th>Answered</th><th>Score</th>
+          <th>Violations</th><th>Tab Swt.</th><th>No Face</th>
+          <th>Status</th><th>Action</th>
+        </tr></thead>
+        <tbody id="students-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── LIVE SESSIONS PAGE ── -->
+  <div class="page-section" id="page-live">
+    <div class="sec-hdr"><div class="sec-title">🔴 Currently Active Sessions</div></div>
+    <div class="table-card">
+      <table>
+        <thead><tr>
+          <th>Student</th><th>Roll No</th><th>Exam</th>
+          <th>Progress</th><th>Violations</th><th>Last Seen</th><th>Action</th>
+        </tr></thead>
+        <tbody id="live-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── VIOLATIONS PAGE ── -->
+  <div class="page-section" id="page-violations">
+    <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);">
+      <div class="stat-card red"><div class="stat-label">Fullscreen Exits</div><div class="stat-value red" id="vt-fs">—</div></div>
+      <div class="stat-card" style="border-color:rgba(217,119,6,0.2)"><div class="stat-label">Tab Switches</div><div class="stat-value" style="color:var(--warn)" id="vt-tab">—</div></div>
+      <div class="stat-card purple"><div class="stat-label">Face Absent Incidents</div><div class="stat-value purple" id="vt-face">—</div></div>
+    </div>
+    <div class="table-card">
+      <div class="table-toolbar"><h3>Students Sorted by Violations</h3></div>
+      <table>
+        <thead><tr>
+          <th>Student</th><th>Exam</th><th>Total Violations</th>
+          <th>Fullscreen Exits</th><th>Tab Switches</th><th>Face Absent</th><th>Risk Level</th><th>Details</th>
+        </tr></thead>
+        <tbody id="violations-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── BY SUBJECT PAGE ── -->
+  <div class="page-section" id="page-subjects">
+    <div class="subject-grid" id="subject-detail-grid" style="grid-template-columns:1fr 1fr 1fr;"></div>
+  </div>
+
+  <!-- ── ANSWER SHEETS PAGE ── -->
+  <div class="page-section" id="page-answers">
+    <div class="sec-hdr">
+      <div class="sec-title">📝 Student Answer Sheets</div>
+      <select id="exam-filter-select" onchange="renderAnswerSheets()" style="padding:6px 12px;border-radius:8px;border:1.5px solid var(--border);font-family:var(--sans);font-size:12px;font-weight:600;color:var(--text);background:var(--surface);">
+        <option value="all">All Exams</option>
+        <option value="maths">Mathematics</option>
+        <option value="english">English</option>
+        <option value="urdu">اردو</option>
+        <option value="science">General Science</option>
+        <option value="computer">Computer Studies</option>
+        <option value="punjabi">Punjabi</option>
+      </select>
+    </div>
+    <div class="table-card">
+      <table>
+        <thead><tr>
+          <th>Student</th><th>Roll No</th><th>Exam</th>
+          <th>Q1</th><th>Q2</th><th>Q3</th><th>Q4</th><th>Q5</th>
+          <th>Q6</th><th>Q7</th><th>Q8</th><th>Q9</th><th>Q10</th>
+          <th>Score</th><th>Marks</th>
+        </tr></thead>
+        <tbody id="answers-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /main-content -->
+
+<!-- ── STUDENT DETAIL PANEL ── -->
+<div id="detail-modal" onclick="if(event.target===this)closeDetail()">
+  <div class="detail-panel">
+    <div class="dp-header">
+      <h2 id="dp-title">Student Details</h2>
+      <button class="dp-close" onclick="closeDetail()">✕</button>
+    </div>
+    <div class="dp-body" id="dp-body"></div>
+  </div>
+</div>
+
+<script>
+// ── QUESTIONS DB (inline for admin scoring display) ──
+const EXAMS_META = {
+  maths:    { name:'Mathematics',    icon:'📐', color:'#2563eb', marks:50 },
+  english:  { name:'English',        icon:'📖', color:'#059669', marks:40 },
+  urdu:     { name:'اردو',           icon:'✍️', color:'#7c3aed', marks:40 },
+  science:  { name:'General Science',icon:'🔬', color:'#dc2626', marks:50 },
+  computer: { name:'Computer Studies',icon:'💻', color:'#d97706', marks:40 },
+  punjabi: { name:'Punjabi', icon:'🌾', color:'#b45309', marks:40 }
+};
+
+const CORRECT = {
+  maths:    ['a','c','b','c','c','c','c','b','c','c'],
+  english:  ['b','c','b','b','a','c','c','b','b','b'],
+  urdu:     ['d','a','c','c','d','a','b','a','b','b'],
+  science:  ['c','c','c','a','d','c','b','b','d','b'],
+  computer: ['a','c','a','c','c','b','c','c','b','c'],
+  punjabi: ['b','c','b','c','b','d','c','a','b','d']
+};
+
+let allSessions = [];
+let currentFilter = 'all';
+let searchQuery = '';
+
+// ── NAV ──
+const pageTitles = { overview:'Overview Dashboard', students:'All Students', live:'Live Sessions', violations:'Violation Report', subjects:'By Subject', answers:'Answer Sheets' };
+function showPage(id, btn) {
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelectorAll('.sn-link').forEach(l => l.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('page-title').textContent = pageTitles[id];
+  renderPage(id);
+}
+function renderPage(id) {
+  if (id==='overview')   renderOverview();
+  if (id==='students')   renderStudents();
+  if (id==='live')       renderLive();
+  if (id==='violations') renderViolations();
+  if (id==='subjects')   renderSubjectDetail();
+  if (id==='answers')    renderAnswerSheets();
+}
+
+// ── LOAD DATA ──
+async function loadAll() {
+  try {
+    const r = await fetch('/api/sessions');
+    allSessions = await r.json();
+  } catch(e) {
+    allSessions = getDemoData();
+  }
+  document.getElementById('nav-badge').textContent = allSessions.length;
+  const active = document.querySelector('.page-section.active');
+  if (active) {
+    const id = active.id.replace('page-','');
+    renderPage(id);
+  }
+}
+
+// ── DEMO DATA ──
+function getDemoData() {
+  const now = Date.now();
+  return [
+    { sessionId:'sess_001', studentName:'Ahmed Khan',   rollNo:'2024-CS-001', email:'ahmed@school.edu.pk',   classSection:'10-A', examId:'maths',    examName:'Mathematics',     violations:0, tabSwitches:0, faceAbsent:0, answeredCount:10, score:8, marks:40, totalMarks:50, submitted:true, answers:['a','c','b','c','c','c','c','b','c','c'], timestamp:new Date(now-3600000).toISOString(), submitTime:new Date(now-3300000).toISOString(), timeTaken:1800 },
+    { sessionId:'sess_002', studentName:'Sara Malik',   rollNo:'2024-CS-002', email:'sara@school.edu.pk',    classSection:'10-A', examId:'english',  examName:'English',          violations:5, tabSwitches:3, faceAbsent:2, answeredCount:9,  score:6, marks:24, totalMarks:40, submitted:true, answers:['b','c','b','b','a','c','c','b','b',null], timestamp:new Date(now-3500000).toISOString(), submitTime:new Date(now-3200000).toISOString(), timeTaken:2400 },
+    { sessionId:'sess_003', studentName:'Ali Hassan',   rollNo:'2024-CS-003', email:'ali@school.edu.pk',     classSection:'10-B', examId:'urdu',     examName:'اردو',             violations:2, tabSwitches:2, faceAbsent:0, answeredCount:10, score:7, marks:28, totalMarks:40, submitted:true, answers:['d','a','c','c','d','a','b','a','b','b'], timestamp:new Date(now-3400000).toISOString(), submitTime:new Date(now-3100000).toISOString(), timeTaken:2100 },
+    { sessionId:'sess_004', studentName:'Fatima Zahra', rollNo:'2024-CS-004', email:'fatima@school.edu.pk',  classSection:'10-B', examId:'science',  examName:'General Science',  violations:8, tabSwitches:4, faceAbsent:4, answeredCount:8,  score:4, marks:20, totalMarks:50, submitted:true, answers:['c','c','c','a','d',null,null,'b','d','b'], timestamp:new Date(now-3300000).toISOString(), submitTime:new Date(now-3000000).toISOString(), timeTaken:2800 },
+    { sessionId:'sess_005', studentName:'Umar Farooq',  rollNo:'2024-CS-005', email:'umar@school.edu.pk',    classSection:'10-A', examId:'computer', examName:'Computer Studies', violations:0, tabSwitches:0, faceAbsent:0, answeredCount:10, score:9, marks:36, totalMarks:40, submitted:true, answers:['a','c','a','c','c','b','c','c','b','c'], timestamp:new Date(now-3200000).toISOString(), submitTime:new Date(now-2900000).toISOString(), timeTaken:1600 },
+    { sessionId:'sess_006', studentName:'Ayesha Noor',  rollNo:'2024-CS-006', email:'ayesha@school.edu.pk',  classSection:'10-C', examId:'islamiat', examName:'Islamiat',         violations:1, tabSwitches:1, faceAbsent:0, answeredCount:10, score:8, marks:32, totalMarks:40, submitted:false, answers:['c','b','b','b','b','c','c','d','c','c'], timestamp:new Date(now-600000).toISOString() },
+    { sessionId:'sess_007', studentName:'Bilal Ahmed',  rollNo:'2024-CS-007', email:'bilal@school.edu.pk',   classSection:'10-C', examId:'maths',    examName:'Mathematics',     violations:3, tabSwitches:2, faceAbsent:1, answeredCount:7,  score:5, marks:25, totalMarks:50, submitted:false, answers:['a','c','b',null,'c','c',null,'b','c','c'], timestamp:new Date(now-300000).toISOString() },
+    { sessionId:'sess_008', studentName:'Zara Sheikh',  rollNo:'2024-CS-008', email:'zara@school.edu.pk',    classSection:'10-A', examId:'english',  examName:'English',          violations:0, tabSwitches:0, faceAbsent:0, answeredCount:6,  score:null, marks:null, totalMarks:40, submitted:false, answers:['b','c','b','b',null,null,null,null,null,null], timestamp:new Date(now-120000).toISOString() },
+  ];
+}
+
+// ── OVERVIEW ──
+function renderOverview() {
+  const s = allSessions;
+  const total = s.length;
+  const totalV = s.reduce((a,b) => a+(b.violations||0),0);
+  const flagged = s.filter(x => (x.violations||0) >= 3).length;
+  const submitted = s.filter(x => x.submitted).length;
+  const clean = s.filter(x => (x.violations||0) === 0).length;
+  const totalTabs = s.reduce((a,b) => a+(b.tabSwitches||0),0);
+  const totalFace = s.reduce((a,b) => a+(b.faceAbsent||0),0);
+  const scored = s.filter(x => x.marks != null && x.totalMarks);
+  const avgScore = scored.length ? Math.round(scored.reduce((a,b) => a + (b.marks/b.totalMarks*100),0) / scored.length) : '—';
+
+  document.getElementById('ov-total').textContent = total;
+  document.getElementById('ov-violations').textContent = totalV;
+  document.getElementById('ov-flagged').textContent = flagged;
+  document.getElementById('ov-submitted').textContent = submitted;
+  document.getElementById('ov-clean').textContent = clean;
+  document.getElementById('ov-tabs').textContent = totalTabs;
+  document.getElementById('ov-face').textContent = totalFace;
+  document.getElementById('ov-avg-score').textContent = avgScore + (typeof avgScore==='number' ? '%':'');
+
+  // Subject cards
+  const bySubject = {};
+  s.forEach(x => {
+    if (!bySubject[x.examId]) bySubject[x.examId] = { students:0, violations:0, scores:[], submitted:0 };
+    bySubject[x.examId].students++;
+    bySubject[x.examId].violations += (x.violations||0);
+    if (x.marks != null && x.totalMarks) bySubject[x.examId].scores.push(x.marks/x.totalMarks*100);
+    if (x.submitted) bySubject[x.examId].submitted++;
+  });
+
+  document.getElementById('subject-grid').innerHTML = Object.entries(bySubject).map(([id,d]) => {
+    const meta = EXAMS_META[id] || { name:id, icon:'📋', color:'#2563eb', marks:50 };
+    const avg = d.scores.length ? Math.round(d.scores.reduce((a,b)=>a+b,0)/d.scores.length) : '—';
+    const subPct = d.students > 0 ? Math.round(d.violations / (d.students*10) * 100) : 0;
+    return `<div class="subject-card">
+      <div class="sc-header">
+        <div class="sc-title"><span class="sc-icon">${meta.icon}</span>${meta.name}</div>
+        <div class="sc-count">${d.students} student${d.students!==1?'s':''}</div>
+      </div>
+      <div class="sc-bar-row">
+        <div class="sc-bar-label">Avg Score</div>
+        <div class="sc-bar-track"><div class="sc-bar-fill" style="width:${avg||0}%;background:${meta.color}"></div></div>
+        <div class="sc-bar-val">${avg}${typeof avg==='number'?'%':''}</div>
+      </div>
+      <div class="sc-bar-row">
+        <div class="sc-bar-label">Violations</div>
+        <div class="sc-bar-track"><div class="sc-bar-fill" style="width:${Math.min(subPct,100)}%;background:#dc2626"></div></div>
+        <div class="sc-bar-val">${d.violations}</div>
+      </div>
+      <div class="sc-bar-row">
+        <div class="sc-bar-label">Submitted</div>
+        <div class="sc-bar-track"><div class="sc-bar-fill" style="width:${Math.round(d.submitted/d.students*100)}%;background:#059669"></div></div>
+        <div class="sc-bar-val">${d.submitted}</div>
+      </div>
+    </div>`;
+  }).join('') || '<div class="empty-state"><div class="es-icon">📊</div><p>No data yet</p></div>';
+
+  // Recent
+  const recent = [...s].sort((a,b) => new Date(b.timestamp)-new Date(a.timestamp)).slice(0,8);
+  document.getElementById('recent-count').textContent = '(' + recent.length + ')';
+  document.getElementById('recent-tbody').innerHTML = recent.map(x => {
+    const meta = EXAMS_META[x.examId] || {};
+    return `<tr onclick="openDetail('${x.sessionId}')">
+      <td><div class="td-name">${x.studentName}</div><div class="td-sub">${x.classSection||''}</div></td>
+      <td class="td-mono">${x.rollNo||'—'}</td>
+      <td>${meta.icon||''} ${x.examName||'—'}</td>
+      <td>${vcBadge(x.violations)}</td>
+      <td>${statusBadge(x)}</td>
+      <td class="td-mono">${timeAgo(x.timestamp)}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--muted)">No sessions yet</td></tr>';
+}
+
+// ── STUDENTS ──
+function renderStudents() {
+  let data = [...allSessions];
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    data = data.filter(s => (s.studentName||'').toLowerCase().includes(q) || (s.rollNo||'').toLowerCase().includes(q) || (s.email||'').toLowerCase().includes(q));
+  }
+  if (currentFilter !== 'all') {
+    data = data.filter(s => {
+      if (currentFilter === 'clean')   return (s.violations||0) === 0;
+      if (currentFilter === 'risk')    return (s.violations||0) >= 1 && (s.violations||0) < 3;
+      if (currentFilter === 'flagged') return (s.violations||0) >= 3;
+      if (currentFilter === 'live')    return !s.submitted;
+      return true;
+    });
+  }
+  document.getElementById('students-tbody').innerHTML = data.length ? data.map(x => {
+    const meta = EXAMS_META[x.examId] || {};
+    const pct  = x.totalQuestions ? Math.round((x.answeredCount||0) / 10 * 100) : 0;
+    const scoreStr = x.marks != null ? x.marks + '/' + x.totalMarks : '—';
+    return `<tr onclick="openDetail('${x.sessionId}')">
+      <td><div class="td-name">${x.studentName||'—'}</div><div class="td-sub">${x.email||''}</div></td>
+      <td class="td-mono">${x.rollNo||'—'}</td>
+      <td>${x.classSection||'—'}</td>
+      <td class="td-mono" style="font-size:11px;max-width:120px;overflow:hidden;text-overflow:ellipsis">${x.email||'—'}</td>
+      <td>${meta.icon||''} ${x.examName||'—'}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="progress-mini"><div class="pm-fill" style="width:${pct}%"></div></div>
+          <span class="td-mono">${x.answeredCount||0}/10</span>
+        </div>
+      </td>
+      <td class="td-mono">${scoreStr}</td>
+      <td>${vcBadge(x.violations)}</td>
+      <td>${vcBadge(x.tabSwitches, 'warn')}</td>
+      <td>${vcBadge(x.faceAbsent, 'warn')}</td>
+      <td>${statusBadge(x)}</td>
+      <td><button class="action-btn ab-view" onclick="event.stopPropagation();openDetail('${x.sessionId}')">View →</button></td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="12" style="text-align:center;padding:40px;color:var(--muted);">No students match the filter</td></tr>';
+}
+
+// ── LIVE ──
+function renderLive() {
+  const live = allSessions.filter(s => !s.submitted);
+  document.getElementById('live-tbody').innerHTML = live.length ? live.map(x => {
+    const meta = EXAMS_META[x.examId] || {};
+    const pct  = Math.round((x.answeredCount||0) / 10 * 100);
+    return `<tr onclick="openDetail('${x.sessionId}')">
+      <td><div class="td-name">${x.studentName||'—'}</div><div class="td-sub">${x.rollNo||''}</div></td>
+      <td class="td-mono">${x.rollNo||'—'}</td>
+      <td>${meta.icon||''} ${x.examName||'—'}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="progress-mini" style="width:100px"><div class="pm-fill" style="width:${pct}%"></div></div>
+          <span class="td-mono">${x.answeredCount||0}/10 (${pct}%)</span>
+        </div>
+      </td>
+      <td>${vcBadge(x.violations)}</td>
+      <td class="td-mono">${timeAgo(x.timestamp)}</td>
+      <td><button class="action-btn ab-view" onclick="event.stopPropagation();openDetail('${x.sessionId}')">View →</button></td>
+    </tr>`;
+  }).join('') : `<tr><td colspan="7"><div class="empty-state"><div class="es-icon">🎉</div><h3>No Live Sessions</h3><p>No students are currently taking an exam.</p></div></td></tr>`;
+}
+
+// ── VIOLATIONS ──
+function renderViolations() {
+  const totalTabs = allSessions.reduce((a,b)=>a+(b.tabSwitches||0),0);
+  const totalFace = allSessions.reduce((a,b)=>a+(b.faceAbsent||0),0);
+  const totalV    = allSessions.reduce((a,b)=>a+(b.violations||0),0);
+  const fsExits   = Math.max(0, totalV - totalTabs - totalFace);
+  document.getElementById('vt-fs').textContent  = fsExits;
+  document.getElementById('vt-tab').textContent = totalTabs;
+  document.getElementById('vt-face').textContent= totalFace;
+
+  const sorted = [...allSessions].filter(x=>(x.violations||0)>0).sort((a,b)=>(b.violations||0)-(a.violations||0));
+  const fsCount = s => Math.max(0,(s.violations||0)-(s.tabSwitches||0)-(s.faceAbsent||0));
+  document.getElementById('violations-tbody').innerHTML = sorted.length ? sorted.map(x => {
+    const meta = EXAMS_META[x.examId]||{};
+    return `<tr onclick="openDetail('${x.sessionId}')">
+      <td><div class="td-name">${x.studentName||'—'}</div><div class="td-sub">${x.rollNo||''}</div></td>
+      <td>${meta.icon||''} ${x.examName||'—'}</td>
+      <td>${vcBadge(x.violations)}</td>
+      <td>${vcBadge(fsCount(x))}</td>
+      <td>${vcBadge(x.tabSwitches,'warn')}</td>
+      <td>${vcBadge(x.faceAbsent,'warn')}</td>
+      <td>${riskBadge(x)}</td>
+      <td><button class="action-btn ab-view" onclick="event.stopPropagation();openDetail('${x.sessionId}')">View →</button></td>
+    </tr>`;
+  }).join('') : `<tr><td colspan="8"><div class="empty-state"><div class="es-icon">✅</div><h3>No Violations Recorded</h3><p>All students have clean sessions so far.</p></div></td></tr>`;
+}
+
+// ── SUBJECT DETAIL ──
+function renderSubjectDetail() {
+  const bySubject = {};
+  allSessions.forEach(x => {
+    if (!x.examId) return;
+    if (!bySubject[x.examId]) bySubject[x.examId] = [];
+    bySubject[x.examId].push(x);
+  });
+  document.getElementById('subject-detail-grid').innerHTML = Object.entries(EXAMS_META).map(([id,meta]) => {
+    const students = bySubject[id] || [];
+    const avg = students.filter(s=>s.marks!=null).length
+      ? Math.round(students.filter(s=>s.marks!=null).reduce((a,b)=>a+(b.marks/b.totalMarks*100),0)/students.filter(s=>s.marks!=null).length)
+      : '—';
+    const totalV = students.reduce((a,b)=>a+(b.violations||0),0);
+    const submitted = students.filter(s=>s.submitted).length;
+    return `<div class="subject-card">
+      <div class="sc-header">
+        <div class="sc-title"><span class="sc-icon">${meta.icon}</span>${meta.name}</div>
+        <span class="badge submitted">${students.length} students</span>
+      </div>
+      <div class="sc-bar-row"><div class="sc-bar-label">Avg Score</div>
+        <div class="sc-bar-track"><div class="sc-bar-fill" style="width:${avg||0}%;background:${meta.color}"></div></div>
+        <div class="sc-bar-val">${avg}${typeof avg==='number'?'%':''}</div>
+      </div>
+      <div class="sc-bar-row"><div class="sc-bar-label">Violations</div>
+        <div class="sc-bar-track"><div class="sc-bar-fill" style="width:${Math.min(totalV*5,100)}%;background:#dc2626"></div></div>
+        <div class="sc-bar-val">${totalV}</div>
+      </div>
+      <div class="sc-bar-row"><div class="sc-bar-label">Submitted</div>
+        <div class="sc-bar-track"><div class="sc-bar-fill" style="width:${students.length?Math.round(submitted/students.length*100):0}%;background:#059669"></div></div>
+        <div class="sc-bar-val">${submitted}</div>
+      </div>
+      ${students.length===0 ? '<div style="text-align:center;padding:10px;color:var(--muted2);font-size:12px;">No attempts yet</div>' : ''}
+    </div>`;
+  }).join('');
+}
+
+// ── ANSWER SHEETS ──
+function renderAnswerSheets() {
+  const filterExam = document.getElementById('exam-filter-select').value;
+  let data = filterExam === 'all' ? allSessions : allSessions.filter(s=>s.examId===filterExam);
+  data = data.filter(s=>s.answers && s.answers.length > 0);
+  const letters = ['A','B','C','D'];
+  document.getElementById('answers-tbody').innerHTML = data.length ? data.map(x => {
+    const correct = CORRECT[x.examId] || [];
+    const ans = x.answers || [];
+    const cells = Array.from({length:10},(_,i) => {
+      const given   = ans[i];
+      const isRight = given && given === correct[i];
+      const cls = !given ? 'da-ans skipped' : isRight ? 'da-ans correct' : 'da-ans wrong';
+      return `<td><span class="${cls}">${given ? letters['abcd'.indexOf(given)] : '—'}</span></td>`;
+    }).join('');
+    const scoreStr = x.marks != null ? x.marks + '/' + x.totalMarks : '—';
+    const pct = x.marks != null ? Math.round(x.marks/x.totalMarks*100) + '%' : '—';
+    return `<tr onclick="openDetail('${x.sessionId}')">
+      <td><div class="td-name">${x.studentName||'—'}</div></td>
+      <td class="td-mono">${x.rollNo||'—'}</td>
+      <td>${(EXAMS_META[x.examId]||{}).icon||''} ${x.examName||'—'}</td>
+      ${cells}
+      <td class="td-mono">${x.score != null ? x.score+'/10' : '—'}</td>
+      <td><strong>${scoreStr}</strong> <span style="color:var(--muted);font-size:11px;">${pct}</span></td>
+    </tr>`;
+  }).join('') : `<tr><td colspan="15"><div class="empty-state"><div class="es-icon">📝</div><h3>No Answer Sheets</h3><p>No submitted exams found for this filter.</p></div></td></tr>`;
+}
+
+// ── STUDENT DETAIL PANEL ──
+function openDetail(sessionId) {
+  const s = allSessions.find(x => x.sessionId === sessionId);
+  if (!s) return;
+  const meta = EXAMS_META[s.examId] || { name:s.examName, icon:'📋', color:'#2563eb', marks:50 };
+  const correct = CORRECT[s.examId] || [];
+  const ans = s.answers || [];
+  const letters = ['A','B','C','D'];
+  const initials = (s.studentName||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  const scoreStr = s.marks != null ? s.marks + '/' + s.totalMarks : '—';
+  const pct = s.marks != null ? Math.round(s.marks/s.totalMarks*100) + '%' : '—';
+  const duration = s.timeTaken ? Math.floor(s.timeTaken/60) + 'm ' + (s.timeTaken%60) + 's' : '—';
+  const fsExits = Math.max(0,(s.violations||0)-(s.tabSwitches||0)-(s.faceAbsent||0));
+
+  document.getElementById('dp-title').textContent = s.studentName || 'Student Details';
+  document.getElementById('dp-body').innerHTML = `
+    <div class="dp-student-card">
+      <div class="dp-avatar" style="background:${meta.color}">${initials}</div>
+      <div class="dp-info">
+        <h3>${s.studentName||'—'}</h3>
+        <div class="dp-roll">${s.rollNo||'—'} · ${s.classSection||'—'}</div>
+        <div class="dp-class">${s.email||'—'}</div>
+      </div>
+      ${statusBadge(s)}
+    </div>
+
+    <div class="dp-section-title">📋 Exam Information</div>
+    <div class="dp-kv-grid">
+      <div class="dp-kv"><div class="k">Subject</div><div class="v blue">${meta.icon} ${s.examName||'—'}</div></div>
+      <div class="dp-kv"><div class="k">Score</div><div class="v ${s.marks != null && s.marks/s.totalMarks >= 0.5 ? 'green':'red'}">${scoreStr} (${pct})</div></div>
+      <div class="dp-kv"><div class="k">Answered</div><div class="v">${s.answeredCount||0}/10</div></div>
+      <div class="dp-kv"><div class="k">Time Taken</div><div class="v">${duration}</div></div>
+    </div>
+
+    <div class="dp-section-title">⚠️ Violation Summary</div>
+    <div class="dp-kv-grid">
+      <div class="dp-kv"><div class="k">Total Violations</div><div class="v ${(s.violations||0)>0?'red':'green'}">${s.violations||0}</div></div>
+      <div class="dp-kv"><div class="k">Fullscreen Exits</div><div class="v ${fsExits>0?'red':'green'}">${fsExits}</div></div>
+      <div class="dp-kv"><div class="k">Tab Switches</div><div class="v ${(s.tabSwitches||0)>0?'red':'green'}">${s.tabSwitches||0}</div></div>
+      <div class="dp-kv"><div class="k">Face Absent</div><div class="v ${(s.faceAbsent||0)>0?'red':'green'}">${s.faceAbsent||0}</div></div>
+    </div>
+
+    ${(s.violations||0) > 0 ? `
+    <div class="dp-violation-list">
+      ${fsExits>0 ? `<div class="dp-v-item"><div class="dp-v-icon">🖥</div><div class="dp-v-text">Exited fullscreen ${fsExits} time(s)</div><div class="dp-v-time">VIOLATION</div></div>` : ''}
+      ${(s.tabSwitches||0)>0 ? `<div class="dp-v-item"><div class="dp-v-icon">🔄</div><div class="dp-v-text">Switched tabs or windows ${s.tabSwitches} time(s)</div><div class="dp-v-time">VIOLATION</div></div>` : ''}
+      ${(s.faceAbsent||0)>0 ? `<div class="dp-v-item warn"><div class="dp-v-icon">👁</div><div class="dp-v-text">Face absent from camera ${s.faceAbsent} time(s)</div><div class="dp-v-time">VIOLATION</div></div>` : ''}
+    </div>` : `<div style="background:var(--success-lt);border:1px solid rgba(5,150,105,0.2);border-radius:8px;padding:12px;font-size:13px;color:var(--success);font-weight:600;margin-bottom:16px;">✅ No violations detected — Clean session</div>`}
+
+    <div class="dp-section-title">📝 Answer Sheet</div>
+    <div class="dp-answers-grid">
+      ${Array.from({length:10},(_,i) => {
+        const given = ans[i];
+        const isRight = given && given === correct[i];
+        const ansLabel = given ? letters['abcd'.indexOf(given)] : null;
+        const corrLabel = letters['abcd'.indexOf(correct[i])];
+        return `<div class="dp-answer-row">
+          <div class="da-num">${i+1}</div>
+          <div class="da-q">Q${i+1}</div>
+          ${!given ? `<span class="da-ans skipped">Skipped</span>` :
+            isRight ? `<span class="da-ans correct">✓ ${ansLabel}</span>` :
+            `<span class="da-ans wrong">✗ ${ansLabel} (correct: ${corrLabel})</span>`}
+        </div>`;
+      }).join('')}
+    </div>
+
+    <div class="dp-section-title">🕐 Session Timeline</div>
+    <div class="dp-kv-grid">
+      <div class="dp-kv"><div class="k">Session ID</div><div class="v" style="font-size:11px">${s.sessionId}</div></div>
+      <div class="dp-kv"><div class="k">Started</div><div class="v" style="font-size:11px">${s.timestamp ? new Date(s.timestamp).toLocaleString('en-PK') : '—'}</div></div>
+      ${s.submitTime ? `<div class="dp-kv"><div class="k">Submitted</div><div class="v" style="font-size:11px">${new Date(s.submitTime).toLocaleString('en-PK')}</div></div>` : ''}
+    </div>
+  `;
+  document.getElementById('detail-modal').style.display = 'flex';
+}
+function closeDetail() { document.getElementById('detail-modal').style.display = 'none'; }
+
+// ── FILTERS ──
+function filterByStatus(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderStudents();
+}
+function filterStudents() {
+  searchQuery = document.getElementById('search-input').value;
+  renderStudents();
+}
+
+// ── CSV EXPORT ──
+function exportCSV() {
+  const headers = ['Session ID','Name','Roll No','Class','Email','Exam','Answered','Score','Marks','Total Marks','Violations','Tab Switches','Face Absent','Status','Timestamp'];
+  const rows = allSessions.map(s => [
+    s.sessionId, s.studentName, s.rollNo, s.classSection, s.email, s.examName,
+    s.answeredCount||0, s.score||'', s.marks||'', s.totalMarks||'',
+    s.violations||0, s.tabSwitches||0, s.faceAbsent||0,
+    s.submitted?'Submitted':'In Progress', s.timestamp||''
+  ]);
+  const csv = [headers, ...rows].map(r => r.map(c => '"'+String(c||'').replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob = new Blob([csv], { type:'text/csv' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'exam_report_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+}
+
+// ── HELPERS ──
+function vcBadge(val, type='danger') {
+  const v = val||0;
+  const cls = v===0?'zero':v<3?'low':'high';
+  return `<span class="v-count ${cls}">${v}</span>`;
+}
+function statusBadge(s) {
+  if (!s.submitted && new Date() - new Date(s.timestamp) < 120*60*1000)
+    return `<span class="badge live">🔴 Live</span>`;
+  if (s.submitted) return `<span class="badge submitted">✅ Submitted</span>`;
+  if ((s.violations||0) >= 3) return `<span class="badge flagged">🚩 Flagged</span>`;
+  if ((s.violations||0) >= 1) return `<span class="badge risk">⚠ At Risk</span>`;
+  return `<span class="badge clean">✅ Clean</span>`;
+}
+function riskBadge(s) {
+  const v = s.violations||0;
+  if (v >= 5) return `<span class="badge flagged">🚩 High Risk</span>`;
+  if (v >= 3) return `<span class="badge risk">⚠ Medium</span>`;
+  return `<span class="badge" style="background:var(--warn-lt);color:var(--warn);border-color:rgba(217,119,6,0.25);">Low</span>`;
+}
+function timeAgo(ts) {
+  if (!ts) return '—';
+  const s = Math.round((Date.now() - new Date(ts)) / 1000);
+  if (s < 60) return s + 's ago';
+  if (s < 3600) return Math.floor(s/60) + 'm ago';
+  return Math.floor(s/3600) + 'h ago';
+}
+
+// ── BOOT ──
+loadAll();
+setInterval(loadAll, 8000);
+</script>
+</body>
+</html>

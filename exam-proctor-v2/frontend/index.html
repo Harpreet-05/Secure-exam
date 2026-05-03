@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>SecureExam — Student Portal</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg:        #f4f6fb;
+  --surface:   #ffffff;
+  --surface2:  #f8f9fc;
+  --border:    #e2e6f0;
+  --border2:   #c8cfe0;
+  --text:      #111827;
+  --muted:     #6b7280;
+  --muted2:    #9ca3af;
+  --accent:    #2563eb;
+  --accent-lt: #eff6ff;
+  --accent-dk: #1d4ed8;
+  --success:   #059669;
+  --success-lt:#ecfdf5;
+  --danger:    #dc2626;
+  --danger-lt: #fef2f2;
+  --warn:      #d97706;
+  --warn-lt:   #fffbeb;
+  --shadow:    0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+  --shadow-lg: 0 10px 30px rgba(0,0,0,0.1), 0 4px 8px rgba(0,0,0,0.06);
+  --radius:    10px;
+  --radius-lg: 16px;
+  --sans: 'Plus Jakarta Sans', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+
+/* ── PAGE LAYOUT ── */
+.page-grid{display:grid;grid-template-columns:1fr 1fr;min-height:100vh;}
+
+/* ── LEFT PANEL (Branding) ── */
+.left-panel{
+  background: linear-gradient(145deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
+  display:flex;flex-direction:column;justify-content:center;
+  padding:60px;position:relative;overflow:hidden;
+}
+.left-panel::before{
+  content:'';position:absolute;inset:0;
+  background: radial-gradient(ellipse 80% 60% at 30% 40%, rgba(37,99,235,0.25) 0%, transparent 70%);
+}
+.left-panel::after{
+  content:'';position:absolute;bottom:-100px;right:-100px;
+  width:400px;height:400px;border-radius:50%;
+  background: radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%);
+}
+.brand{position:relative;z-index:1;}
+.brand-logo{
+  display:flex;align-items:center;gap:12px;margin-bottom:60px;
+}
+.brand-icon{
+  width:44px;height:44px;background:var(--accent);border-radius:10px;
+  display:flex;align-items:center;justify-content:center;font-size:20px;
+}
+.brand-name{color:#fff;font-size:18px;font-weight:700;letter-spacing:-0.3px;}
+.brand-name span{color:#93c5fd;}
+
+.hero-tag{
+  display:inline-block;background:rgba(37,99,235,0.2);
+  color:#93c5fd;border:1px solid rgba(147,197,253,0.3);
+  border-radius:20px;padding:5px 14px;font-size:12px;font-weight:600;
+  letter-spacing:0.5px;margin-bottom:20px;
+}
+.hero-title{color:#fff;font-size:40px;font-weight:800;line-height:1.15;margin-bottom:16px;letter-spacing:-1px;}
+.hero-title span{color:#93c5fd;}
+.hero-sub{color:#94a3b8;font-size:15px;line-height:1.7;max-width:360px;}
+
+.features{margin-top:48px;display:flex;flex-direction:column;gap:14px;}
+.feat-item{display:flex;align-items:center;gap:12px;}
+.feat-icon{
+  width:32px;height:32px;background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.12);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;font-size:14px;
+  flex-shrink:0;
+}
+.feat-text{color:#cbd5e1;font-size:13px;font-weight:500;}
+
+.grid-bg{
+  position:absolute;inset:0;z-index:0;
+  background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ── RIGHT PANEL (Form) ── */
+.right-panel{
+  display:flex;align-items:center;justify-content:center;
+  padding:60px 80px;background:var(--bg);
+}
+.form-container{width:100%;max-width:420px;}
+
+/* STEP INDICATOR */
+.steps{display:flex;align-items:center;gap:8px;margin-bottom:40px;}
+.step{
+  display:flex;align-items:center;gap:6px;
+  font-size:12px;font-weight:600;color:var(--muted2);
+  transition:color 0.3s;
+}
+.step.active{color:var(--accent);}
+.step.done{color:var(--success);}
+.step-num{
+  width:24px;height:24px;border-radius:50%;
+  border:1.5px solid currentColor;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;transition:all 0.3s;
+}
+.step.done .step-num{background:var(--success);border-color:var(--success);color:#fff;}
+.step.active .step-num{background:var(--accent);border-color:var(--accent);color:#fff;}
+.step-line{flex:1;height:1px;background:var(--border);}
+
+/* FORM SECTION CARDS */
+.form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow);overflow:hidden;}
+.form-card-header{padding:24px 28px;border-bottom:1px solid var(--border);background:var(--surface2);}
+.form-card-header h2{font-size:18px;font-weight:700;letter-spacing:-0.3px;}
+.form-card-header p{font-size:13px;color:var(--muted);margin-top:4px;}
+.form-card-body{padding:28px;}
+
+/* FORM ELEMENTS */
+.field{margin-bottom:18px;}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--muted);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:6px;}
+.field input,.field select{
+  width:100%;padding:11px 14px;
+  border:1.5px solid var(--border);border-radius:var(--radius);
+  font-family:var(--sans);font-size:14px;color:var(--text);
+  background:var(--surface);outline:none;transition:border-color 0.2s,box-shadow 0.2s;
+}
+.field input:focus,.field select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,0.1);}
+.field input.error{border-color:var(--danger);}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.error-msg{font-size:12px;color:var(--danger);margin-top:5px;display:none;}
+.error-msg.show{display:block;}
+
+/* EXAM CARDS */
+.exam-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px;}
+.exam-card{
+  border:2px solid var(--border);border-radius:var(--radius);
+  padding:16px;cursor:pointer;transition:all 0.2s;
+  background:var(--surface);position:relative;
+}
+.exam-card:hover{border-color:var(--accent);background:var(--accent-lt);}
+.exam-card.selected{border-color:var(--accent);background:var(--accent-lt);}
+.exam-card input[type=radio]{position:absolute;opacity:0;}
+.exam-icon{font-size:24px;margin-bottom:8px;}
+.exam-name{font-size:13px;font-weight:700;color:var(--text);}
+.exam-meta{font-size:11px;color:var(--muted);margin-top:3px;}
+.exam-check{
+  position:absolute;top:10px;right:10px;
+  width:18px;height:18px;border-radius:50%;
+  border:2px solid var(--border);background:var(--surface);
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.2s;
+}
+.exam-card.selected .exam-check{background:var(--accent);border-color:var(--accent);color:#fff;font-size:10px;}
+
+/* BUTTONS */
+.btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;padding:13px 20px;border-radius:var(--radius);
+  font-family:var(--sans);font-size:14px;font-weight:700;
+  cursor:pointer;transition:all 0.2s;border:none;
+}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{background:var(--accent-dk);transform:translateY(-1px);box-shadow:0 4px 12px rgba(37,99,235,0.3);}
+.btn-primary:active{transform:none;}
+.btn-outline{background:transparent;color:var(--accent);border:1.5px solid var(--accent);}
+.btn-outline:hover{background:var(--accent-lt);}
+
+/* SYSTEM REQUIREMENTS */
+.req-list{display:flex;flex-direction:column;gap:10px;margin:20px 0;}
+.req-item{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 14px;border-radius:var(--radius);
+  background:var(--surface2);border:1px solid var(--border);
+}
+.req-status{
+  width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:12px;
+  flex-shrink:0;
+}
+.req-status.checking{background:#fef3c7;color:#92400e;}
+.req-status.ok{background:var(--success-lt);color:var(--success);}
+.req-status.fail{background:var(--danger-lt);color:var(--danger);}
+.req-info{flex:1;}
+.req-name{font-size:13px;font-weight:600;}
+.req-detail{font-size:11px;color:var(--muted);margin-top:2px;}
+
+/* INSTRUCTIONS */
+.instruction-box{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius);padding:16px;margin-bottom:20px;
+}
+.instruction-box h4{font-size:13px;font-weight:700;margin-bottom:10px;color:var(--text);}
+.instruction-list{list-style:none;display:flex;flex-direction:column;gap:7px;}
+.instruction-list li{
+  display:flex;align-items:flex-start;gap:8px;
+  font-size:12px;color:var(--muted);line-height:1.5;
+}
+.instruction-list li::before{content:'•';color:var(--accent);font-weight:700;flex-shrink:0;margin-top:1px;}
+
+.warn-box{
+  background:var(--warn-lt);border:1px solid rgba(217,119,6,0.3);
+  border-radius:var(--radius);padding:12px 14px;margin-bottom:20px;
+  display:flex;gap:10px;align-items:flex-start;
+}
+.warn-box .w-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
+.warn-box p{font-size:12px;color:#92400e;line-height:1.5;}
+
+/* HIDDEN STEP LOGIC */
+.step-section{display:none;}
+.step-section.active{display:block;}
+
+/* FOOTER */
+.portal-footer{text-align:center;margin-top:24px;font-size:12px;color:var(--muted2);}
+</style>
+</head>
+<body>
+
+<div class="page-grid">
+  <!-- LEFT BRANDING PANEL -->
+  <div class="left-panel">
+    <div class="grid-bg"></div>
+    <div class="brand">
+      <div class="brand-logo">
+        <div class="brand-icon">🔒</div>
+        <div class="brand-name">Secure<span>Exam</span></div>
+      </div>
+      <div class="hero-tag">AI-Powered Proctoring</div>
+      <h1 class="hero-title">Smart. Secure.<br/><span>Trustworthy.</span></h1>
+      <p class="hero-sub">A professional online examination platform with real-time AI monitoring, face detection, and complete violation tracking.</p>
+      <div class="features">
+        <div class="feat-item"><div class="feat-icon">👁</div><div class="feat-text">Live AI face detection via webcam</div></div>
+        <div class="feat-item"><div class="feat-icon">🖥</div><div class="feat-text">Fullscreen lock & tab switch detection</div></div>
+        <div class="feat-item"><div class="feat-icon">📊</div><div class="feat-text">Real-time admin monitoring dashboard</div></div>
+        <div class="feat-item"><div class="feat-icon">📋</div><div class="feat-text">Detailed per-student violation reports</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT FORM PANEL -->
+  <div class="right-panel">
+    <div class="form-container">
+
+      <!-- STEP INDICATOR -->
+      <div class="steps">
+        <div class="step active" id="si-1"><div class="step-num">1</div> Details</div>
+        <div class="step-line"></div>
+        <div class="step" id="si-2"><div class="step-num">2</div> Exam</div>
+        <div class="step-line"></div>
+        <div class="step" id="si-3"><div class="step-num">3</div> System</div>
+        <div class="step-line"></div>
+        <div class="step" id="si-4"><div class="step-num">4</div> Begin</div>
+      </div>
+
+      <!-- ── STEP 1: STUDENT DETAILS ── -->
+      <div class="step-section active" id="step-1">
+        <div class="form-card">
+          <div class="form-card-header">
+            <h2>Student Registration</h2>
+            <p>Enter your details to access the exam portal</p>
+          </div>
+          <div class="form-card-body">
+            <div class="field-row">
+              <div class="field">
+                <label>First Name</label>
+                <input type="text" id="firstName" placeholder="e.g. Ahmed"/>
+                <div class="error-msg" id="err-firstName">Required</div>
+              </div>
+              <div class="field">
+                <label>Last Name</label>
+                <input type="text" id="lastName" placeholder="e.g. Khan"/>
+                <div class="error-msg" id="err-lastName">Required</div>
+              </div>
+            </div>
+            <div class="field">
+              <label>Roll Number / Student ID</label>
+              <input type="text" id="rollNo" placeholder="e.g. 2024-CS-0042"/>
+              <div class="error-msg" id="err-rollNo">Required</div>
+            </div>
+            <div class="field">
+              <label>Email Address</label>
+              <input type="email" id="email" placeholder="student@school.edu.pk"/>
+              <div class="error-msg" id="err-email">Enter a valid email</div>
+            </div>
+            <div class="field">
+              <label>Class / Section</label>
+              <input type="text" id="classSection" placeholder="e.g. 10-A or Grade 8"/>
+              <div class="error-msg" id="err-classSection">Required</div>
+            </div>
+            <div class="field">
+              <label>Exam Password</label>
+              <input type="password" id="examPassword" placeholder="Enter password given by teacher"/>
+              <div class="error-msg" id="err-examPassword">Incorrect password</div>
+            </div>
+            <button class="btn btn-primary" onclick="goStep2()">Continue →</button>
+          </div>
+        </div>
+        <div class="portal-footer">Admin? <a href="admin.html" style="color:var(--accent);font-weight:600;">Go to Admin Panel</a></div>
+      </div>
+
+      <!-- ── STEP 2: SELECT EXAM ── -->
+      <div class="step-section" id="step-2">
+        <div class="form-card">
+          <div class="form-card-header">
+            <h2>Select Your Exam</h2>
+            <p>Choose the subject you are appearing for today</p>
+          </div>
+          <div class="form-card-body">
+            <div class="exam-grid" id="exam-grid">
+              <!-- Populated by JS -->
+            </div>
+            <div class="error-msg" id="err-exam" style="margin-bottom:12px">Please select an exam</div>
+            <button class="btn btn-primary" onclick="goStep3()">Proceed to System Check →</button>
+            <div style="height:10px"></div>
+            <button class="btn btn-outline" onclick="goBack(1)">← Back</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── STEP 3: SYSTEM CHECK ── -->
+      <div class="step-section" id="step-3">
+        <div class="form-card">
+          <div class="form-card-header">
+            <h2>System Requirements</h2>
+            <p>Checking your device before the exam begins</p>
+          </div>
+          <div class="form-card-body">
+            <div class="req-list" id="req-list">
+              <div class="req-item" id="req-browser">
+                <div class="req-status checking" id="rs-browser">⏳</div>
+                <div class="req-info"><div class="req-name">Browser Support</div><div class="req-detail" id="rd-browser">Checking...</div></div>
+              </div>
+              <div class="req-item" id="req-camera">
+                <div class="req-status checking" id="rs-camera">⏳</div>
+                <div class="req-info"><div class="req-name">Camera Access</div><div class="req-detail" id="rd-camera">Requesting permission...</div></div>
+              </div>
+              <div class="req-item" id="req-fullscreen">
+                <div class="req-status checking" id="rs-fullscreen">⏳</div>
+                <div class="req-info"><div class="req-name">Fullscreen Support</div><div class="req-detail" id="rd-fullscreen">Checking...</div></div>
+              </div>
+              <div class="req-item" id="req-js">
+                <div class="req-status ok" id="rs-js">✓</div>
+                <div class="req-info"><div class="req-name">JavaScript</div><div class="req-detail" id="rd-js">Enabled ✓</div></div>
+              </div>
+            </div>
+            <div id="sys-fail-msg" style="display:none" class="warn-box">
+              <span class="w-icon">⚠️</span>
+              <p>One or more requirements failed. Please allow camera access and use Chrome or Firefox to continue.</p>
+            </div>
+            <button class="btn btn-primary" id="proceed-btn" onclick="goStep4()" disabled>Checking system...</button>
+            <div style="height:10px"></div>
+            <button class="btn btn-outline" onclick="goBack(2)">← Back</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── STEP 4: INSTRUCTIONS ── -->
+      <div class="step-section" id="step-4">
+        <div class="form-card">
+          <div class="form-card-header">
+            <h2>Exam Instructions</h2>
+            <p id="instr-subtitle">Read carefully before starting</p>
+          </div>
+          <div class="form-card-body">
+            <div class="warn-box">
+              <span class="w-icon">⚠️</span>
+              <p><strong>Important:</strong> This exam is AI-proctored. All violations are automatically recorded and reported to your teacher.</p>
+            </div>
+            <div class="instruction-box">
+              <h4>📋 General Rules</h4>
+              <ul class="instruction-list">
+                <li>Do not exit fullscreen mode during the exam</li>
+                <li>Do not switch tabs, windows, or applications</li>
+                <li>Keep your face clearly visible to the camera at all times</li>
+                <li>No other person should be visible in the camera</li>
+                <li>Right-click and copy/paste shortcuts are disabled</li>
+                <li>The exam timer will auto-submit when time runs out</li>
+              </ul>
+            </div>
+            <div class="instruction-box" id="exam-specific-instructions">
+              <h4 id="exam-instr-title">📘 Subject Instructions</h4>
+              <ul class="instruction-list" id="exam-instr-list"></ul>
+            </div>
+            <div id="exam-summary" style="background:var(--accent-lt);border:1px solid rgba(37,99,235,0.2);border-radius:var(--radius);padding:14px;margin-bottom:20px;">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;">
+                <div><span style="color:var(--muted)">Student:</span> <strong id="s-name">—</strong></div>
+                <div><span style="color:var(--muted)">Roll No:</span> <strong id="s-roll">—</strong></div>
+                <div><span style="color:var(--muted)">Exam:</span> <strong id="s-exam">—</strong></div>
+                <div><span style="color:var(--muted)">Duration:</span> <strong id="s-duration">—</strong></div>
+                <div><span style="color:var(--muted)">Questions:</span> <strong id="s-questions">—</strong></div>
+                <div><span style="color:var(--muted)">Total Marks:</span> <strong id="s-marks">—</strong></div>
+              </div>
+            </div>
+            <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;margin-bottom:20px;font-size:13px;color:var(--muted);">
+              <input type="checkbox" id="agree-cb" onchange="toggleBeginBtn()" style="width:16px;height:16px;margin-top:2px;accent-color:var(--accent);">
+              I have read and agree to all rules and instructions. I understand that violations will be reported.
+            </label>
+            <button class="btn btn-primary" id="begin-btn" onclick="beginExam()" disabled style="background:var(--muted2);cursor:not-allowed;">
+              🔒 Enter Fullscreen & Begin Exam
+            </button>
+            <div style="height:10px"></div>
+            <button class="btn btn-outline" onclick="goBack(3)">← Back</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// ── EXAM DATABASE ──
+const EXAMS = {
+  maths: {
+    id:'maths', name:'Mathematics', icon:'📐',
+    duration:60, questions:10, marks:50,
+    instructions:['Show full working where required','Calculator is not allowed','Attempt all questions'],
+    color:'#2563eb'
+  },
+  english: {
+    id:'english', name:'English', icon:'📖',
+    duration:45, questions:10, marks:40,
+    instructions:['Read each passage carefully','Spelling and grammar will be marked','Write in clear sentences'],
+    color:'#059669'
+  },
+  urdu: {
+    id:'urdu', name:'اردو (Urdu)', icon:'✍️',
+    duration:45, questions:10, marks:40,
+    instructions:['تمام سوالات لازمی ہیں','اردو زبان میں جواب دیں','خوشخطی کا خیال رکھیں'],
+    color:'#7c3aed'
+  },
+  science: {
+    id:'science', name:'General Science', icon:'🔬',
+    duration:50, questions:10, marks:50,
+    instructions:['Diagrams should be labeled','Attempt all MCQs','No guessing penalty'],
+    color:'#dc2626'
+  },
+  computer: {
+    id:'computer', name:'Computer Studies', icon:'💻',
+    duration:40, questions:10, marks:40,
+    instructions:['Read each question carefully','MCQ only — no short answers','Each question carries equal marks'],
+    color:'#d97706'
+  },
+  punjabi: {
+    id:'punjabi', name:'Punjabi', icon:'🌾',
+    duration:40, questions:10, marks:40,
+    instructions:['Read each question carefully','Answer in Punjabi where required','All questions are compulsory'],
+    color:'#b45309'
+  }
+};
+
+const EXAM_PASSWORD = 'exam2024'; // Teacher sets this — change as needed
+
+let selectedExam = null;
+let cameraStream = null;
+let currentStep = 1;
+
+// ── RENDER EXAM CARDS ──
+function renderExamCards() {
+  const grid = document.getElementById('exam-grid');
+  grid.innerHTML = Object.values(EXAMS).map(e => `
+    <label class="exam-card" id="ec-${e.id}" onclick="selectExam('${e.id}')">
+      <input type="radio" name="exam" value="${e.id}">
+      <div class="exam-check" id="ck-${e.id}"></div>
+      <div class="exam-icon">${e.icon}</div>
+      <div class="exam-name">${e.name}</div>
+      <div class="exam-meta">${e.questions} Qs · ${e.duration} min · ${e.marks} marks</div>
+    </label>
+  `).join('');
+}
+renderExamCards();
+
+function selectExam(id) {
+  selectedExam = id;
+  document.querySelectorAll('.exam-card').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll('.exam-check').forEach(c => c.textContent = '');
+  document.getElementById('ec-' + id).classList.add('selected');
+  document.getElementById('ck-' + id).textContent = '✓';
+}
+
+// ── STEP NAVIGATION ──
+function setStep(n) {
+  currentStep = n;
+  document.querySelectorAll('.step-section').forEach((s,i) => s.classList.toggle('active', i+1 === n));
+  document.querySelectorAll('.step').forEach((s,i) => {
+    s.classList.remove('active','done');
+    if (i+1 === n) s.classList.add('active');
+    if (i+1 < n) s.classList.add('done');
+  });
+}
+function goBack(n) { setStep(n); }
+
+// ── STEP 1 → 2 ──
+function goStep2() {
+  let ok = true;
+  const fields = [
+    {id:'firstName', msg:'First name is required'},
+    {id:'lastName',  msg:'Last name is required'},
+    {id:'rollNo',    msg:'Roll number is required'},
+    {id:'classSection', msg:'Class/Section is required'},
+  ];
+  fields.forEach(f => {
+    const val = document.getElementById(f.id).value.trim();
+    const err = document.getElementById('err-' + f.id);
+    if (!val) { err.textContent = f.msg; err.classList.add('show'); document.getElementById(f.id).classList.add('error'); ok = false; }
+    else { err.classList.remove('show'); document.getElementById(f.id).classList.remove('error'); }
+  });
+  const email = document.getElementById('email').value.trim();
+  const emailErr = document.getElementById('err-email');
+  if (!email || !/\S+@\S+\.\S+/.test(email)) {
+    emailErr.classList.add('show'); document.getElementById('email').classList.add('error'); ok = false;
+  } else { emailErr.classList.remove('show'); document.getElementById('email').classList.remove('error'); }
+
+  const pw = document.getElementById('examPassword').value;
+  const pwErr = document.getElementById('err-examPassword');
+  if (pw !== EXAM_PASSWORD) {
+    pwErr.textContent = 'Incorrect password. Ask your teacher.';
+    pwErr.classList.add('show'); document.getElementById('examPassword').classList.add('error'); ok = false;
+  } else { pwErr.classList.remove('show'); document.getElementById('examPassword').classList.remove('error'); }
+
+  if (ok) setStep(2);
+}
+
+// ── STEP 2 → 3 ──
+function goStep3() {
+  const err = document.getElementById('err-exam');
+  if (!selectedExam) { err.classList.add('show'); return; }
+  err.classList.remove('show');
+  setStep(3);
+  runSystemCheck();
+}
+
+// ── SYSTEM CHECK ──
+async function runSystemCheck() {
+  const btn = document.getElementById('proceed-btn');
+  btn.textContent = 'Checking system...';
+  btn.disabled = true;
+  let allOk = true;
+
+  // Browser check
+  setTimeout(() => {
+    const isChrome = /Chrome/.test(navigator.userAgent) && !/Edg/.test(navigator.userAgent);
+    const isFirefox = /Firefox/.test(navigator.userAgent);
+    const ok = isChrome || isFirefox;
+    setReq('browser', ok, ok ? 'Compatible browser detected ✓' : 'Use Chrome or Firefox');
+    if (!ok) allOk = false;
+  }, 400);
+
+  // Fullscreen check
+  setTimeout(() => {
+    const ok = document.documentElement.requestFullscreen !== undefined;
+    setReq('fullscreen', ok, ok ? 'Fullscreen mode supported ✓' : 'Not supported on this browser');
+    if (!ok) allOk = false;
+  }, 700);
+
+  // Camera check
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+    cameraStream = stream;
+    setReq('camera', true, 'Camera access granted ✓');
+  } catch(e) {
+    setReq('camera', false, 'Camera access denied — please allow in browser settings');
+    allOk = false;
+  }
+
+  setTimeout(() => {
+    const fail = document.getElementById('sys-fail-msg');
+    if (allOk) {
+      btn.textContent = 'All Checks Passed — Continue →';
+      btn.disabled = false;
+      fail.style.display = 'none';
+    } else {
+      btn.textContent = 'System Requirements Not Met';
+      fail.style.display = 'flex';
+    }
+  }, 1200);
+}
+
+function setReq(id, ok, detail) {
+  const rs = document.getElementById('rs-' + id);
+  const rd = document.getElementById('rd-' + id);
+  rs.className = 'req-status ' + (ok ? 'ok' : 'fail');
+  rs.textContent = ok ? '✓' : '✗';
+  rd.textContent = detail;
+}
+
+// ── STEP 3 → 4 ──
+function goStep4() {
+  const exam = EXAMS[selectedExam];
+  const fn = document.getElementById('firstName').value.trim();
+  const ln = document.getElementById('lastName').value.trim();
+
+  document.getElementById('instr-subtitle').textContent = exam.name + ' — ' + exam.duration + ' minutes';
+  document.getElementById('s-name').textContent = fn + ' ' + ln;
+  document.getElementById('s-roll').textContent = document.getElementById('rollNo').value;
+  document.getElementById('s-exam').textContent = exam.name;
+  document.getElementById('s-duration').textContent = exam.duration + ' minutes';
+  document.getElementById('s-questions').textContent = exam.questions;
+  document.getElementById('s-marks').textContent = exam.marks;
+  document.getElementById('exam-instr-title').textContent = exam.icon + ' ' + exam.name + ' Instructions';
+  document.getElementById('exam-instr-list').innerHTML = exam.instructions.map(i => `<li>${i}</li>`).join('');
+  setStep(4);
+}
+
+function toggleBeginBtn() {
+  const btn = document.getElementById('begin-btn');
+  const checked = document.getElementById('agree-cb').checked;
+  btn.disabled = !checked;
+  btn.style.background = checked ? '' : 'var(--muted2)';
+  btn.style.cursor = checked ? '' : 'not-allowed';
+}
+
+// ── BEGIN EXAM ──
+function beginExam() {
+  const studentData = {
+    firstName: document.getElementById('firstName').value.trim(),
+    lastName:  document.getElementById('lastName').value.trim(),
+    rollNo:    document.getElementById('rollNo').value.trim(),
+    email:     document.getElementById('email').value.trim(),
+    classSection: document.getElementById('classSection').value.trim(),
+    examId:    selectedExam,
+    examName:  EXAMS[selectedExam].name,
+    sessionId: 'sess_' + Date.now()
+  };
+  sessionStorage.setItem('studentData', JSON.stringify(studentData));
+  sessionStorage.setItem('cameraReady', 'true');
+  window.location.href = 'exam.html';
+}
+</script>
+</body>
+</html>

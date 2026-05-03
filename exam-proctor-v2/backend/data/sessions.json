@@ -1,0 +1,39 @@
+[
+  {
+    "sessionId": "sess_1777815685376",
+    "studentName": "bddfk d ,s",
+    "rollNo": "5454",
+    "email": "ronak@gmail.com",
+    "classSection": "sjdbcks",
+    "examId": "urdu",
+    "examName": "اردو",
+    "violations": 4,
+    "tabSwitches": 2,
+    "faceAbsent": 2,
+    "answeredCount": 2,
+    "timestamp": "2026-05-03T13:43:14.285Z",
+    "event": "submit",
+    "createdAt": "2026-05-03T13:41:33.103Z",
+    "answers": [
+      null,
+      "c",
+      "c",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "updatedAt": "2026-05-03T13:43:14.299Z",
+    "type": "fullscreen",
+    "score": 1,
+    "totalQuestions": 10,
+    "marks": 4,
+    "totalMarks": 40,
+    "timeTaken": 94,
+    "submitted": true,
+    "submitTime": "2026-05-03T13:43:14.297Z"
+  }
+]
