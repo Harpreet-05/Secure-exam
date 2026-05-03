@@ -544,6 +544,17 @@ td{padding:13px 18px;font-size:13px;vertical-align:middle;}
 
 <script>
 // ── QUESTIONS DB (inline for admin scoring display) ──
+// Admin password protection
+const ADMIN_PASSWORD = 'admin123';
+const entered = sessionStorage.getItem('adminAuth');
+if (!entered) {
+  const pw = prompt('Enter Admin Password:');
+  if (pw !== ADMIN_PASSWORD) {
+    document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;background:#0f1623;color:#fff;font-size:18px;">❌ Access Denied</div>';
+    throw new Error('Unauthorized');
+  }
+  sessionStorage.setItem('adminAuth', 'true');
+}
 const EXAMS_META = {
   maths:    { name:'Mathematics',    icon:'📐', color:'#2563eb', marks:50 },
   english:  { name:'English',        icon:'📖', color:'#059669', marks:40 },
