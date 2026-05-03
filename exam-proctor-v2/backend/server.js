@@ -1,4 +1,4 @@
-const express = require('express');
+﻿const express = require('express');
 const cors    = require('cors');
 const fs      = require('fs');
 const path    = require('path');
@@ -10,7 +10,7 @@ app.use(cors());
 app.use(express.json({ limit: '2mb' }));
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-// ── DATA FILE ──
+// â”€â”€ DATA FILE â”€â”€
 const DATA_DIR  = path.join(__dirname, 'data');
 const DATA_FILE = path.join(DATA_DIR, 'sessions.json');
 
@@ -28,7 +28,7 @@ function upsert(session) {
   write(sessions);
 }
 
-// ── ROUTES ──
+// â”€â”€ ROUTES â”€â”€
 
 // All events from the exam page
 app.post('/api/event', (req, res) => {
@@ -91,15 +91,15 @@ app.get('/',       (req, res) => res.sendFile(path.join(__dirname, '../frontend/
 app.get('/exam',   (req, res) => res.sendFile(path.join(__dirname, '../frontend/exam.html')));
 app.get('/admin',  (req, res) => res.sendFile(path.join(__dirname, '../frontend/admin.html')));
 
-// ── START ──
+// â”€â”€ START â”€â”€
 app.listen(PORT, () => {
-  console.log('\n╔═════════════════════════════════════╗');
-  console.log('║     🔒 SecureExam Pro — Running     ║');
-  console.log('╠═════════════════════════════════════╣');
-  console.log(`║  Student Portal : http://localhost:${PORT}  `);
-  console.log(`║  Exam Page      : http://localhost:${PORT}/exam`);
-  console.log(`║  Admin Panel    : http://localhost:${PORT}/admin`);
-  console.log('╚═════════════════════════════════════╝\n');
+  console.log('\nâ•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—');
+  console.log('â•‘     ðŸ”’ SecureExam Pro â€” Running     â•‘');
+  console.log('â• â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•£');
+  console.log(`â•‘  Student Portal : http://localhost:${PORT}  `);
+  console.log(`â•‘  Exam Page      : http://localhost:${PORT}/exam`);
+  console.log(`â•‘  Admin Panel    : http://localhost:${PORT}/admin`);
+  console.log('â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n');
   console.log('Default exam password: exam2024');
-  console.log('(Change in frontend/index.html → EXAM_PASSWORD)\n');
+  console.log('(Change in frontend/index.html â†’ EXAM_PASSWORD)\n');
 });
