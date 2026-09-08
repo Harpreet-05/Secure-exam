@@ -5,7 +5,7 @@
 | Feature | Details |
 |---|---|
 | 👤 Student login | Name, Roll No, Email, Class, Exam Password |
-| 📚 6 Subjects | Maths, English, Urdu, Science, Computer, Islamiat |
+| 📚 6 Subjects | Maths, English, Urdu, Science, Computer, punjabi |
 | 🪜 4-Step Flow | Login → Select Exam → System Check → Instructions → Exam |
 | 🤖 AI Face Detection | TensorFlow face-api.js runs in browser |
 | 📊 Admin Dashboard | 6 pages: Overview, All Students, Live, Violations, By Subject, Answer Sheets |
@@ -261,5 +261,3 @@ Change to `10000` for 10 seconds, etc.
 | Exam password wrong | Default is `exam2024` — check `index.html` |
 
 ---
-
-Good luck with your project! 🚀
